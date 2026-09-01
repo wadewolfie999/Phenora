@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "description": "Pinned source provenance for phenora local scientific tools.",
+  "platform": "macOS arm64",
+  "native": {
+    "spheno": {
+      "version": "4.0.5",
+      "source": {
+        "kind": "archive",
+        "url": "https://spheno.hepforge.org/downloads/SPheno-4.0.5.tar.gz",
+        "sha256": "3f84a6c3e47f40e0dd1bcccb88eb08a1d0a65aa3d8e42504befdfc3d47ec9529"
+      },
+      "citation": "https://arxiv.org/abs/hep-ph/0301101",
+      "install_prefix": "third_party/install/spheno"
+    },
+    "micromegas": {
+      "version": "6.0",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/restrepo/micromegas.git",
+        "revision": "2503728502af35f920a019984ef2c390bc4de87e"
+      },
+      "local_patches": [
+        "patches/micromegas-gcc16.patch"
+      ],
+      "citation": "https://arxiv.org/abs/1305.0237",
+      "install_prefix": "third_party/install/micromegas"
+    },
+    "higgstools": {
+      "version": "v1.2",
+      "source": {
+        "kind": "git",
+        "url": "https://gitlab.com/higgsbounds/higgstools.git",
+        "revision": "7ab57ca559f2ec6adbeaedba2625f34c1a998b5f"
+      },
+      "citation": "https://arxiv.org/abs/2210.09332",
+      "install_prefix": "third_party/install/higgstools"
+    },
+    "bsmpt": {
+      "version": "v3.1.14",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/BSMPT/BSMPT.git",
+        "revision": "01578231aa499e0a8346ab34b172c656dc0837bd"
+      },
+      "citation": "https://arxiv.org/abs/1803.02846",
+      "install_prefix": "third_party/install/bsmpt"
+    },
+    "multinest": {
+      "version": "v3.10",
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/JohannesBuchner/MultiNest.git",
+        "revision": "f6c6df735dd78bae58e053522b04f26a21947591"
+      },
+      "citation": "https://arxiv.org/abs/0809.3437",
+      "install_prefix": "third_party/install/multinest"
+    }
+  },
+  "python": {
+    "dynesty": {
+      "version": "3.1.0",
+      "citation": "https://arxiv.org/abs/1904.02180"
+    },
+    "jax": {
+      "version": "0.11.1",
+      "citation": "https://github.com/jax-ml/jax"
+    },
+    "jaxns": {
+      "version": "2.6.9",
+      "citation": "https://arxiv.org/abs/2012.15286"
+    },
+    "getdist": {
+      "version": "1.7.7",
+      "citation": "https://arxiv.org/abs/1910.13970"
+    }
+  }
+}

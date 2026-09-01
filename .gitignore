@@ -1,0 +1,26 @@
+# Local environments and package/build caches
+.venv/
+.pip-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Third-party source, builds, and installations are reproducible from tooling/tools.json.
+third_party/
+
+# Research products are deliberately local by default.
+data/
+outputs/
+results/
+plots/
+notebooks/.ipynb_checkpoints/
+*.log
+*.tmp
+fort.*
+.DS_Store
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
