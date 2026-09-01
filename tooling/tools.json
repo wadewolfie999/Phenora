@@ -4,11 +4,11 @@
   "platform": "macOS arm64",
   "native": {
     "spheno": {
-      "version": "4.0.5",
+      "version": "4.0.7",
       "source": {
         "kind": "archive",
-        "url": "https://spheno.hepforge.org/downloads/SPheno-4.0.5.tar.gz",
-        "sha256": "3f84a6c3e47f40e0dd1bcccb88eb08a1d0a65aa3d8e42504befdfc3d47ec9529"
+        "url": "https://spheno.hepforge.org/downloads/SPheno-4.0.7.tar.gz",
+        "sha256": "4118cba09efff861c43f3fd4951395f9cc8b96cc8819476c97943d95d5167937"
       },
       "citation": "https://arxiv.org/abs/hep-ph/0301101",
       "install_prefix": "third_party/install/spheno"

@@ -102,12 +102,12 @@ fi
 create_python_environment cpu "$requirements_dir/cpu.in" "$requirements_dir/cpu.lock.txt"
 
 # SPheno
-spheno_archive="$source_dir/SPheno-4.0.5.tar.gz"
+spheno_archive="$source_dir/SPheno-4.0.7.tar.gz"
 if [[ ! -f "$spheno_archive" ]]; then
   curl --fail --location --retry 3 --output "$spheno_archive" "$(source_value spheno url)"
 fi
 record_archive_hash spheno "$spheno_archive"
-spheno_source="$source_dir/SPheno-4.0.5"
+spheno_source="$source_dir/SPheno-4.0.7"
 if [[ ! -d "$spheno_source" ]]; then tar -xzf "$spheno_archive" -C "$source_dir"; fi
 make -C "$spheno_source" F90=gfortran
 mkdir -p "$install_dir/spheno/bin"
