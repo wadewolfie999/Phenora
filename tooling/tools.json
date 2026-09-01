@@ -63,7 +63,7 @@
       "citation": "https://arxiv.org/abs/1904.02180"
     },
     "jax": {
-      "version": "0.11.1",
+      "version": "0.10.2",
       "citation": "https://github.com/jax-ml/jax"
     },
     "jaxns": {

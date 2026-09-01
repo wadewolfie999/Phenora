@@ -52,8 +52,7 @@ Activate an environment with `source .venv/cpu/bin/activate` or
 - Review and commit the updated manifest checksum and generated lockfile.
 - Do not commit `third_party/`, `.venv/`, data, outputs, generated models, or secrets.
 
-The stable CPU profile uses Python 3.12 because current JAX releases require
-Python 3.12 or newer. The optional Metal profile follows Apple's experimental
+The stable CPU profile uses project-local Python 3.11 with the latest JAX release compatible with that interpreter. The optional Metal profile follows Apple's experimental
 `jax-metal` compatibility guidance and may have feature limitations.
 
 BSMPT is built against Homebrew Eigen, GSL, NLopt, and nlohmann-json. Its

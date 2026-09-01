@@ -38,13 +38,13 @@ require brew
 brew_prefix="$(brew --prefix)"
 
 # No upgrade is requested: only missing prerequisites are installed.
-brew_packages=(gcc open-mpi openblas make pkgconf python@3.12 gsl nlopt eigen nlohmann-json)
+brew_packages=(gcc open-mpi openblas make pkgconf python@3.11 gsl nlopt eigen nlohmann-json)
 for package in "${brew_packages[@]}"; do
   brew list --versions "$package" >/dev/null 2>&1 || brew install "$package"
 done
 
-python_bin="$(brew --prefix python@3.12)/bin/python3.12"
-[[ -x "$python_bin" ]] || { echo "Homebrew Python 3.12 was not installed correctly." >&2; exit 1; }
+python_bin="$(brew --prefix python@3.11)/bin/python3.11"
+[[ -x "$python_bin" ]] || { echo "Homebrew Python 3.11 was not installed correctly." >&2; exit 1; }
 mkdir -p "$source_dir" "$build_dir" "$install_dir"
 
 source_value() {

@@ -2,10 +2,11 @@ jax-metal==0.1.0
 jax==0.4.30
 jaxlib==0.4.30
 ml_dtypes==0.6.0
-numpy==2.5.2
+numpy==2.4.6
 opt_einsum==3.4.0
 packaging==26.3
 pip==26.2.1
-scipy==1.18.1
+scipy==1.17.1
+setuptools==84.0.0
 six==1.17.0
 wheel==0.48.0
