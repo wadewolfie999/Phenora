@@ -31,7 +31,8 @@
       "nlopt": "2.11.0",
       "eigen": "5.0.1",
       "nlohmann-json": "3.12.0",
-      "cmake": "4.4.2"
+      "cmake": "4.4.2",
+      "boost": "1.92.0"
     }
   },
   "native": {
@@ -46,15 +47,15 @@
       "install_prefix": "third_party/install/spheno"
     },
     "micromegas": {
-      "version": "7.1.1",
+      "version": "7.1.4",
       "source": {
         "kind": "archive",
-        "url": "https://zenodo.org/api/records/20547050/files/micromegas_7.1.1.tgz/content",
-        "md5": "291ce2a028c408a2b1516655e18359ea",
-        "sha256": "325ce54c83013d38e3981fee7c7e6c2fa5fe8c2476bf09b1a9283e906be4fc43",
-        "record": "https://zenodo.org/records/20547050"
+        "url": "https://micromegasdm.github.io/downloadarea/v7.1/micromegas_7.1.4.tgz",
+        "md5": "23db3108b6e8037ba7f4dbcdcc124aa6",
+        "sha256": "c8cf207b17541a5b7d7e7ff157f1c1eb36e1dd3f7547e7745559b195c2a34264",
+        "release_page": "https://micromegasdm.github.io/v7.1/intro_7.1.html"
       },
-      "citation": "https://arxiv.org/abs/1305.0237",
+      "citation": "https://arxiv.org/abs/2606.06645",
       "install_prefix": "third_party/install/micromegas"
     },
     "higgstools": {
@@ -89,6 +90,27 @@
     }
   },
   "python": {
+    "smodels": {
+      "version": "3.2.0",
+      "source": {
+        "kind": "archive",
+        "url": "https://files.pythonhosted.org/packages/c3/02/325f0b7426f77c0dedba7376b1d7d6425527052b5bf337640156fc305694/smodels-3.2.0.tar.gz",
+        "md5": "87946193bf54ec8487479cfabd9056c1",
+        "sha256": "17059b3fde473ff00e17bd1b5117fa3a1d75db3d0903f401a4ee5eb2d11ad549",
+        "release_page": "https://github.com/SModelS/smodels/releases/tag/3.2.0",
+        "revision": "53a19a64c4c7d0bf3e9129d647091bba49c5e405"
+      },
+      "citation": "https://arxiv.org/abs/2409.12942",
+      "install_prefix": "third_party/install/smodels-3.2.0",
+      "external_tools": {
+        "pythia6": "6.4.27",
+        "pythia8": "8.317",
+        "nllfast": ["1.2", "2.1", "3.1"],
+        "resummino": "3.1.2",
+        "lhapdf": "6.5.5",
+        "pdfset": "PDF4LHC21_40"
+      }
+    },
     "dynesty": {
       "version": "3.1.0",
       "citation": "https://arxiv.org/abs/1904.02180"

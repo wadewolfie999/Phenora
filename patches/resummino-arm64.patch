@@ -1,0 +1,25 @@
+--- a/external/include/Fastor/simd_vector/simd_vector_complex_scalar.h
++++ b/external/include/Fastor/simd_vector/simd_vector_complex_scalar.h
+@@ -254,5 +254,5 @@
+ template <typename T>
+ FASTOR_INLINE SIMDVector<std::complex<T>,simd_abi::scalar>
+ operator-(const SIMDVector<std::complex<T>,simd_abi::scalar> &b) {
+-    return SIMDVector<std::complex<T>,simd_abi::scalar>(0,0) - b;
++    return SIMDVector<std::complex<T>,simd_abi::scalar>(std::complex<T>(0,0)) - b;
+ }
+--- a/external/include/Fastor/simd_vector/simd_vector_common.h
++++ b/external/include/Fastor/simd_vector/simd_vector_common.h
+@@ -54,6 +54,13 @@
+ // Broadcasting vectorisation on general strides [gather operations]
+ //----------------------------------------------------------------------------------------------------------------
++// A scalar complex vector contains one element, independent of the stride.
++template<typename T>
++FASTOR_INLINE void vector_setter(SIMDVector<std::complex<T>,simd_abi::scalar> &vec,
++                               const std::complex<T> *data, int idx, int) {
++    vec.set(data[idx]);
++}
++
+ // 1 word scalar
+ template<typename T, typename ABI,
+          typename std::enable_if<sizeof(T)==1 && internal::get_simd_vector_size<SIMDVector<T,ABI>>::bitsize==8,bool>::type=0>
+ FASTOR_INLINE void vector_setter(SIMDVector<T,ABI> &vec, const T *data, int idx, int ) {

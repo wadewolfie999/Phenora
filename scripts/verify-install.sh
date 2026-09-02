@@ -5,8 +5,9 @@ usage() {
   cat <<'EOF'
 Usage: scripts/verify-install.sh [--profile cpu|metal]
 
-Checks that each requested tool has been installed. This intentionally performs
-installation checks only; it does not run scientific benchmarks or upstream tests.
+Checks each requested installation, including SModelS provenance, CLIs, and
+CPU-native smoke tests. Does not download or load the SModelS official database.
+IDM validation requires explicitly running verify-smodels.py --idm-database.
 EOF
 }
 
@@ -19,7 +20,7 @@ fi
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 manifest="$repo_root/tooling/tools.json"
 install_dir="$repo_root/third_party/install"
-venv="$repo_root/.venv/$profile"
+venv="${PHENORA_VENV_ROOT:-$repo_root/.venv}/$profile"
 [[ -x "$venv/bin/python" ]] || { echo "Missing $profile environment; run bootstrap first." >&2; exit 1; }
 
 python_probe() {
@@ -66,6 +67,13 @@ print(f"Lockfile matches installed packages: {len(expected)} pins")
 PY
 }
 
+if [[ "$profile" == cpu ]]; then
+  "$venv/bin/python" "$repo_root/scripts/verify-smodels.py" --native
+else
+  "$venv/bin/python" "$repo_root/scripts/verify-smodels.py"
+fi
+"$venv/bin/python" -m pip check
+
 if [[ "$profile" == "metal" ]]; then
   python_probe jax jaxlib
   lock_probe "$repo_root/requirements/metal.lock.txt"
@@ -104,10 +112,43 @@ with open(sys.argv[1], encoding="utf-8") as handle:
     print(json.load(handle)["native"]["micromegas"]["source"]["sha256"])
 PY
 )"
+micro_md5="$($venv/bin/python - "$manifest" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as handle:
+    print(json.load(handle)["native"]["micromegas"]["source"]["md5"])
+PY
+)"
+micro_source_url="$($venv/bin/python - "$manifest" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as handle:
+    print(json.load(handle)["native"]["micromegas"]["source"]["url"])
+PY
+)"
+micro_release_page="$($venv/bin/python - "$manifest" <<'PY'
+import json
+import sys
+with open(sys.argv[1], encoding="utf-8") as handle:
+    print(json.load(handle)["native"]["micromegas"]["source"]["release_page"])
+PY
+)"
 micro_version_file="$install_dir/micromegas/VERSION"
 [[ -f "$micro_version_file" ]] || { echo "Missing micrOMEGAs provenance marker: $micro_version_file" >&2; exit 1; }
 grep -Fxq "micrOMEGAs $micro_version" "$micro_version_file" || {
   echo "micrOMEGAs version marker mismatch (expected $micro_version)." >&2
+  exit 1
+}
+grep -Fxq "source_url $micro_source_url" "$micro_version_file" || {
+  echo "micrOMEGAs source URL marker mismatch." >&2
+  exit 1
+}
+grep -Fxq "release_page $micro_release_page" "$micro_version_file" || {
+  echo "micrOMEGAs release page marker mismatch." >&2
+  exit 1
+}
+grep -Fxq "md5 $micro_md5" "$micro_version_file" || {
+  echo "micrOMEGAs MD5 marker mismatch (expected $micro_md5)." >&2
   exit 1
 }
 grep -Fxq "sha256 $micro_sha256" "$micro_version_file" || {

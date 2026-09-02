@@ -6,8 +6,9 @@ usage() {
 Usage: scripts/bootstrap-macos.sh [--profile cpu|metal]
 
 Builds the reproducible local phenora toolchain. The CPU profile installs all
-native and Python tools. The Metal profile creates only the experimental,
-isolated JAX Metal Python environment.
+native and Python tools. The Metal profile creates the experimental, isolated
+JAX Metal Python environment and reuses the CPU profile's SModelS native tools.
+The SModelS experimental database is not downloaded or validated by bootstrap.
 EOF
 }
 
@@ -47,6 +48,7 @@ brew_prefix="$(brew --prefix)"
 
 # No upgrade is requested: only missing prerequisites are installed.
 brew_packages=(gcc open-mpi openblas make pkgconf "$python_formula" gsl nlopt eigen nlohmann-json)
+if [[ "$profile" == cpu ]]; then brew_packages+=(boost cmake); fi
 for package in "${brew_packages[@]}"; do
   brew list --versions "$package" >/dev/null 2>&1 || brew install "$package"
 done
@@ -137,13 +139,20 @@ create_python_environment() {
     -r "$lockfile"
 }
 
+"$python_bin" "$repo_root/scripts/smodels-toolchain.py" prepare
 if [[ "$profile" == "metal" ]]; then
+  "$python_bin" "$repo_root/scripts/smodels-toolchain.py" check_bundle || {
+    echo "Bootstrap the CPU profile first for the shared SModelS external tools." >&2; exit 1;
+  }
   create_python_environment metal "$requirements_dir/metal.lock.txt"
+  "${PHENORA_VENV_ROOT:-$repo_root/.venv}/metal/bin/python" "$repo_root/scripts/smodels-toolchain.py" activate
   echo "Metal profile created at $repo_root/.venv/metal"
   exit 0
 fi
 
 create_python_environment cpu "$requirements_dir/cpu.lock.txt"
+"${PHENORA_VENV_ROOT:-$repo_root/.venv}/cpu/bin/python" "$repo_root/scripts/smodels-toolchain.py" build
+"${PHENORA_VENV_ROOT:-$repo_root/.venv}/cpu/bin/python" "$repo_root/scripts/smodels-toolchain.py" activate
 
 # SPheno
 spheno_archive="$source_dir/SPheno-4.0.7.tar.gz"
@@ -193,14 +202,29 @@ micro_built_library="$(find "$micro_source" -type f -name 'micromegas.a' -print 
 [[ -n "$micro_built_library" ]] || { echo "micrOMEGAs build did not produce micromegas.a." >&2; exit 1; }
 mkdir -p "$micro_stage/lib"
 cp "$micro_built_library" "$micro_stage/lib/libmicromegas.a"
-printf 'micrOMEGAs %s\nsha256 %s\n' "$micro_version" "$(source_value micromegas sha256)" > "$micro_stage/VERSION"
+printf 'micrOMEGAs %s\nsource_url %s\nrelease_page %s\nmd5 %s\nsha256 %s\n' \
+  "$micro_version" \
+  "$(source_value micromegas url)" \
+  "$(source_value micromegas release_page)" \
+  "$(source_value micromegas md5)" \
+  "$(source_value micromegas sha256)" > "$micro_stage/VERSION"
 
 micro_install="$install_dir/micromegas"
 micro_library="$micro_install/lib/libmicromegas.a"
 micro_backup="$install_dir/micromegas-v6.0-backup/lib/libmicromegas.a"
+micro_reference="$install_dir/micromegas-7.1.1-backup/lib/libmicromegas.a"
+micro_current_version=""
+if [[ -f "$micro_install/VERSION" ]]; then
+  micro_current_version="$(sed -n 's/^micrOMEGAs //p' "$micro_install/VERSION")"
+fi
 if [[ -f "$micro_library" && ! -f "$micro_backup" ]]; then
   mkdir -p "$(dirname "$micro_backup")"
   cp "$micro_library" "$micro_backup"
+fi
+if [[ "$micro_current_version" == "7.1.1" && -f "$micro_library" && ! -f "$micro_reference" ]]; then
+  mkdir -p "$(dirname "$micro_reference")"
+  cp "$micro_library" "$micro_reference"
+  cp "$micro_install/VERSION" "$(dirname "$micro_reference")/VERSION"
 fi
 mkdir -p "$micro_install/lib"
 cp "$micro_stage/lib/libmicromegas.a" "$micro_library.new"
