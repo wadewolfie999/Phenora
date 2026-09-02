@@ -20,8 +20,9 @@ virtual environments, model files, data, and scan results stay local.
 | GetDist | posterior analysis and plotting | Python CPU |
 
 Exact first-party source provenance is in [`tooling/tools.json`](tooling/tools.json).
-The installer fills archive SHA-256 values on its first successful download; commit
-that manifest change to preserve the resulting local source lock.
+The micrOMEGAs 7.1.1 archive is published by its authors in the
+[official Zenodo record](https://zenodo.org/records/20547050) and is verified
+against its recorded checksums before extraction.
 
 ## Setup
 
@@ -48,17 +49,30 @@ Activate an environment with `source .venv/cpu/bin/activate` or
 
 - Change a pinned version/revision only in `tooling/tools.json` or the relevant
   `requirements/*.in` file.
-- Re-run the appropriate bootstrap and verification scripts.
-- Review and commit the updated manifest checksum and generated lockfile.
+- Regenerate the corresponding hash-pinned lockfile from public PyPI in a
+  controlled resolver environment.
+- Re-run the appropriate bootstrap and verification scripts. Bootstrap installs
+  from the lockfile; the `*.in` files are resolver inputs, not installation
+  inputs.
 - Do not commit `third_party/`, `.venv/`, data, outputs, generated models, or secrets.
 
-The stable CPU profile uses project-local Python 3.11 with the latest JAX release compatible with that interpreter. The optional Metal profile follows Apple's experimental
-`jax-metal` compatibility guidance and may have feature limitations.
+The stable CPU profile uses project-local Homebrew Python 3.12 with the latest
+stable JAX/JAXLIB pair. The optional Metal profile remains isolated on the
+Apple-documented Python 3.11 and `jax-metal` 0.1.0 baseline until a GPU-backed
+validation run establishes a newer stack.
+
+micrOMEGAs is installed from the authors' versioned 7.1.1 archive. The existing
+`patches/micromegas-gcc16.patch` applies only to the preserved v6.0 source and is
+not applied to 7.1.1, whose source does not accept those patch hunks.
 
 BSMPT is built against Homebrew Eigen, GSL, NLopt, and nlohmann-json. Its
 upstream Conan setup is intentionally not used because ConanCenter currently
 rejects anonymous dependency downloads; the bootstrap keeps this alternative
 fully local and does not require a Conan account.
+
+The Metal package probe is safe on hosts without a usable GPU. Set
+`PHENORA_VALIDATE_METAL_DEVICE=1` when an actual device-backed validation is
+required.
 
 ## Citations
 

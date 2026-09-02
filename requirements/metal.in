@@ -1,5 +1,6 @@
 # Isolated experimental Apple Metal profile. Do not mix with the CPU profile.
-# Apple documents jax-metal 0.1.0 with jaxlib >= 0.4.26.
+# Keep the Apple-documented jax-metal 0.1.0 baseline until a GPU-backed
+# validation run establishes a newer compatible stack.
 jax==0.4.30
 jaxlib==0.4.30
 jax-metal==0.1.0

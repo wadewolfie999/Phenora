@@ -2,6 +2,38 @@
   "schema_version": 1,
   "description": "Pinned source provenance for phenora local scientific tools.",
   "platform": "macOS arm64",
+  "python_profiles": {
+    "cpu": {
+      "provider": "Homebrew",
+      "formula": "python@3.12",
+      "executable": "python3.12",
+      "observed_version": "3.12.14"
+    },
+    "metal": {
+      "provider": "Homebrew",
+      "formula": "python@3.11",
+      "executable": "python3.11",
+      "observed_version": "3.11.16"
+    }
+  },
+  "host_toolchain": {
+    "observed_on": "2026-09-02",
+    "macos": "26.5.2",
+    "homebrew": "6.0.21-14-g74d6ac5",
+    "subversion": "1.14.5",
+    "formulae": {
+      "gcc": "16.2.0",
+      "open-mpi": "5.0.10",
+      "openblas": "0.3.34",
+      "make": "4.4.1",
+      "pkgconf": "3.0.5",
+      "gsl": "2.8",
+      "nlopt": "2.11.0",
+      "eigen": "5.0.1",
+      "nlohmann-json": "3.12.0",
+      "cmake": "4.4.2"
+    }
+  },
   "native": {
     "spheno": {
       "version": "4.0.7",
@@ -14,15 +46,14 @@
       "install_prefix": "third_party/install/spheno"
     },
     "micromegas": {
-      "version": "6.0",
+      "version": "7.1.1",
       "source": {
-        "kind": "git",
-        "url": "https://github.com/restrepo/micromegas.git",
-        "revision": "2503728502af35f920a019984ef2c390bc4de87e"
+        "kind": "archive",
+        "url": "https://zenodo.org/api/records/20547050/files/micromegas_7.1.1.tgz/content",
+        "md5": "291ce2a028c408a2b1516655e18359ea",
+        "sha256": "325ce54c83013d38e3981fee7c7e6c2fa5fe8c2476bf09b1a9283e906be4fc43",
+        "record": "https://zenodo.org/records/20547050"
       },
-      "local_patches": [
-        "patches/micromegas-gcc16.patch"
-      ],
       "citation": "https://arxiv.org/abs/1305.0237",
       "install_prefix": "third_party/install/micromegas"
     },
@@ -37,11 +68,11 @@
       "install_prefix": "third_party/install/higgstools"
     },
     "bsmpt": {
-      "version": "v3.1.14",
+      "version": "3.2.0",
       "source": {
         "kind": "git",
         "url": "https://github.com/BSMPT/BSMPT.git",
-        "revision": "01578231aa499e0a8346ab34b172c656dc0837bd"
+        "revision": "41a987302bb600a34560d4df15a0600976e0f4bf"
       },
       "citation": "https://arxiv.org/abs/1803.02846",
       "install_prefix": "third_party/install/bsmpt"
@@ -63,7 +94,7 @@
       "citation": "https://arxiv.org/abs/1904.02180"
     },
     "jax": {
-      "version": "0.10.2",
+      "version": "0.11.1",
       "citation": "https://github.com/jax-ml/jax"
     },
     "jaxns": {

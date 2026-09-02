@@ -25,6 +25,14 @@ build_dir="$third_party/build"
 install_dir="$third_party/install"
 requirements_dir="$repo_root/requirements"
 
+if [[ "$profile" == "cpu" ]]; then
+  python_formula="python@3.12"
+  python_executable="python3.12"
+else
+  python_formula="python@3.11"
+  python_executable="python3.11"
+fi
+
 require() { command -v "$1" >/dev/null 2>&1 || { echo "Missing required command: $1" >&2; exit 1; }; }
 require git
 require curl
@@ -38,13 +46,13 @@ require brew
 brew_prefix="$(brew --prefix)"
 
 # No upgrade is requested: only missing prerequisites are installed.
-brew_packages=(gcc open-mpi openblas make pkgconf python@3.11 gsl nlopt eigen nlohmann-json)
+brew_packages=(gcc open-mpi openblas make pkgconf "$python_formula" gsl nlopt eigen nlohmann-json)
 for package in "${brew_packages[@]}"; do
   brew list --versions "$package" >/dev/null 2>&1 || brew install "$package"
 done
 
-python_bin="$(brew --prefix python@3.11)/bin/python3.11"
-[[ -x "$python_bin" ]] || { echo "Homebrew Python 3.11 was not installed correctly." >&2; exit 1; }
+python_bin="$(brew --prefix "$python_formula")/bin/$python_executable"
+[[ -x "$python_bin" ]] || { echo "Homebrew $python_formula was not installed correctly." >&2; exit 1; }
 mkdir -p "$source_dir" "$build_dir" "$install_dir"
 
 source_value() {
@@ -55,6 +63,16 @@ path, tool, key = sys.argv[1:]
 with open(path) as handle:
     item = json.load(handle)["native"][tool]["source"]
 print(item[key])
+PY
+}
+
+native_version() {
+  local tool="$1"
+  "$python_bin" - "$manifest" "$tool" <<'PY'
+import json, sys
+path, tool = sys.argv[1:]
+with open(path, encoding="utf-8") as handle:
+    print(json.load(handle)["native"][tool]["version"])
 PY
 }
 
@@ -84,22 +102,48 @@ clone_at_revision() {
   git -C "$destination" checkout --detach "$revision"
 }
 
+verify_archive_hash() {
+  local tool="$1" archive="$2" expected actual expected_md5 actual_md5
+  expected_md5="$(source_value "$tool" md5)"
+  actual_md5="$(md5 -q "$archive")"
+  [[ "$actual_md5" == "$expected_md5" ]] || {
+    echo "MD5 mismatch for $tool: $actual_md5 (expected $expected_md5)" >&2
+    exit 1
+  }
+  expected="$(source_value "$tool" sha256)"
+  actual="$(shasum -a 256 "$archive" | awk '{print $1}')"
+  [[ "$actual" == "$expected" ]] || {
+    echo "SHA-256 mismatch for $tool: $actual (expected $expected)" >&2
+    exit 1
+  }
+}
+
+download_archive() {
+  local tool="$1" archive="$2"
+  if [[ ! -f "$archive" ]]; then
+    curl --fail --location --retry 3 --output "$archive" "$(source_value "$tool" url)"
+  fi
+  verify_archive_hash "$tool" "$archive"
+}
+
 create_python_environment() {
-  local environment="$1" requirements="$2" lockfile="$3"
-  local venv="$repo_root/.venv/$environment"
-  "$python_bin" -m venv "$venv"
-  "$venv/bin/python" -m pip install --index-url https://pypi.org/simple --upgrade pip
-  "$venv/bin/python" -m pip install --index-url https://pypi.org/simple -r "$requirements"
-  "$venv/bin/python" -m pip freeze --all | LC_ALL=C sort > "$lockfile"
+  local environment="$1" lockfile="$2"
+  local venv_root="${PHENORA_VENV_ROOT:-$repo_root/.venv}"
+  local venv="$venv_root/$environment"
+  "$python_bin" -m venv --clear "$venv"
+  "$venv/bin/python" -m pip install \
+    --index-url https://pypi.org/simple \
+    --require-hashes \
+    -r "$lockfile"
 }
 
 if [[ "$profile" == "metal" ]]; then
-  create_python_environment metal "$requirements_dir/metal.in" "$requirements_dir/metal.lock.txt"
+  create_python_environment metal "$requirements_dir/metal.lock.txt"
   echo "Metal profile created at $repo_root/.venv/metal"
   exit 0
 fi
 
-create_python_environment cpu "$requirements_dir/cpu.in" "$requirements_dir/cpu.lock.txt"
+create_python_environment cpu "$requirements_dir/cpu.lock.txt"
 
 # SPheno
 spheno_archive="$source_dir/SPheno-4.0.7.tar.gz"
@@ -114,15 +158,16 @@ mkdir -p "$install_dir/spheno/bin"
 find "$spheno_source" -type f -name SPheno -perm -111 -exec cp {} "$install_dir/spheno/bin/SPheno" \; -quit
 
 # micrOMEGAs
-micro_source="$source_dir/micromegas"
-clone_at_revision micromegas "$micro_source"
-micro_patch="$repo_root/patches/micromegas-gcc16.patch"
-if rg -q 'char\* alias\[10\]\[10\];' "$micro_source/CalcHEP_src/c_source/dynamicME/dynamic_cs.c"; then
-  git -C "$micro_source" apply "$micro_patch"
+micro_version="$(native_version micromegas)"
+micro_archive="$source_dir/micromegas_${micro_version}.tgz"
+micro_source="$source_dir/micromegas_${micro_version}"
+download_archive micromegas "$micro_archive"
+if [[ ! -d "$micro_source" ]]; then
+  tar -xzf "$micro_archive" -C "$source_dir"
 fi
+[[ -d "$micro_source" ]] || { echo "micrOMEGAs source directory was not extracted: $micro_source" >&2; exit 1; }
 cat > "$micro_source/CalcHEP_src/FlagsForSh" <<'EOF'
-# Seed CalcHEP with Homebrew GCC rather than Apple's clang: micrOMEGAs 6.0
-# selects a GCC-specific extended numeric type on macOS.
+# Seed CalcHEP with Homebrew GCC rather than Apple's clang on macOS.
 CC="gcc-16"
 CFLAGS="-g -fsigned-char -std=gnu99 -fPIC -Wno-error=incompatible-pointer-types"
 HX11=
@@ -143,8 +188,25 @@ lQuad="-lquadmath"
 export CC CFLAGS lDL LX11 SHARED SONAME SO FC FFLAGS RANLIB CXX CXXFLAGS lFort lQuad MAKE
 EOF
 CC=gcc-16 CXX=g++-16 make -C "$micro_source"
-mkdir -p "$install_dir/micromegas/lib"
-find "$micro_source" -type f -name 'micromegas.a' -exec cp {} "$install_dir/micromegas/lib/libmicromegas.a" \; -quit
+micro_stage="$build_dir/micromegas-${micro_version}-install"
+micro_built_library="$(find "$micro_source" -type f -name 'micromegas.a' -print -quit)"
+[[ -n "$micro_built_library" ]] || { echo "micrOMEGAs build did not produce micromegas.a." >&2; exit 1; }
+mkdir -p "$micro_stage/lib"
+cp "$micro_built_library" "$micro_stage/lib/libmicromegas.a"
+printf 'micrOMEGAs %s\nsha256 %s\n' "$micro_version" "$(source_value micromegas sha256)" > "$micro_stage/VERSION"
+
+micro_install="$install_dir/micromegas"
+micro_library="$micro_install/lib/libmicromegas.a"
+micro_backup="$install_dir/micromegas-v6.0-backup/lib/libmicromegas.a"
+if [[ -f "$micro_library" && ! -f "$micro_backup" ]]; then
+  mkdir -p "$(dirname "$micro_backup")"
+  cp "$micro_library" "$micro_backup"
+fi
+mkdir -p "$micro_install/lib"
+cp "$micro_stage/lib/libmicromegas.a" "$micro_library.new"
+cp "$micro_stage/VERSION" "$micro_install/VERSION.new"
+mv -f "$micro_library.new" "$micro_library"
+mv -f "$micro_install/VERSION.new" "$micro_install/VERSION"
 
 # HiggsTools
 higgs_source="$source_dir/higgstools"

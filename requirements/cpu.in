@@ -1,7 +1,7 @@
 # Top-level Python tools for the stable ARM64 CPU profile.
-# `scripts/bootstrap-macos.sh` resolves this into cpu.lock.txt.
+# Regenerate cpu.lock.txt deliberately when changing these pins.
 dynesty==3.1.0
 getdist==1.7.7
-jax==0.10.2
-jaxlib==0.10.2
+jax==0.11.1
+jaxlib==0.11.1
 jaxns==2.6.9
